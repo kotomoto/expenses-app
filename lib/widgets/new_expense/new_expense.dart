@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:expense_tracker/models/expense.dart';
 import 'package:expense_tracker/widgets/new_expense/amount_field.dart';
 import 'package:expense_tracker/widgets/new_expense/date_picker_field.dart';
 import 'package:expense_tracker/widgets/new_expense/title_field.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class NewExpense extends StatefulWidget {
@@ -41,6 +44,38 @@ class _NewExpenseState extends State<NewExpense> {
     final enteredAmount = double.tryParse(_amountController.text);
     final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
     if (_titleController.text.trim().isEmpty || amountIsInvalid || _selectedDate == null) {
+      _showDialog();
+      return;
+    }
+
+    widget.onAddExpense(Expense(
+      title: _titleController.text,
+      amount: enteredAmount,
+      date: _selectedDate!,
+      category: _selectedCategory,
+    ));
+
+    Navigator.pop(context);
+  }
+
+  void _showDialog() {
+    if (Platform.isIOS) {
+      showCupertinoDialog(
+          context: context,
+          builder: (ctx) => CupertinoAlertDialog(
+                title: const Text('Invalid input'),
+                content: const Text(
+                    'Please make sure a valid title, amount, date and category was entered.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                    },
+                    child: const Text('Okay'),
+                  )
+                ],
+              ));
+    } else {
       showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -56,17 +91,7 @@ class _NewExpenseState extends State<NewExpense> {
                   )
                 ],
               ));
-      return;
     }
-
-    widget.onAddExpense(Expense(
-      title: _titleController.text,
-      amount: enteredAmount,
-      date: _selectedDate!,
-      category: _selectedCategory,
-    ));
-
-    Navigator.pop(context);
   }
 
   @override
